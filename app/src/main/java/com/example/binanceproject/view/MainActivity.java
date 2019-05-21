@@ -1,6 +1,7 @@
 package com.example.binanceproject.view;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.FloatingActionButton;
@@ -9,18 +10,25 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.View;
 import android.widget.Button;
 
 import com.example.binanceproject.R;
 import com.example.binanceproject.constants.AppConstants;
 import com.example.binanceproject.model.TickerStream;
+import com.example.binanceproject.service.TradeHelperService;
 import com.example.binanceproject.utils.ListCreator;
 import com.example.binanceproject.view.dialogs.TickerPickerDialog;
 import com.example.binanceproject.view.recyclerview.BinanceStreamAdapter;
 import com.example.binanceproject.viewmodel.BinanceStreamViewModel;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.zip.Inflater;
 
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -30,7 +38,6 @@ public class MainActivity extends AppCompatActivity implements BinanceStreamView
     private static final String TAG = "MainActivity";
     public static final String API_KEY = "1vLpvkhNLLSfwAsJg2Xw3jxiRT4GqcuKHbQinHWCmIZXuuUzH0hauJXQAsBHeKvM";
     public static final String SECRET_KEY = "dGVtHincxQi2NeAEVMGn13CNcNDleJAJ1jjniG7ZZ7nY7gOX4ansCt0CT9jFogR9";
-    private Button closeStreamButton;
     private FloatingActionButton floatingActionButton;
     private BinanceStreamViewModel viewModel;
     private BinanceStreamAdapter adapter;
@@ -45,12 +52,10 @@ public class MainActivity extends AppCompatActivity implements BinanceStreamView
         setViewModel();
         setRecyclerView();
         initFloatActionButtonListener();
-        initCloseButtonListener();
     }
 
     private void findViews() {
         mainRootLayout = findViewById(R.id.main_activity_root_layout);
-        closeStreamButton = findViewById(R.id.close_stream_button);
         floatingActionButton = findViewById(R.id.add_new_stream);
     }
 
@@ -70,39 +75,56 @@ public class MainActivity extends AppCompatActivity implements BinanceStreamView
         floatingActionButton.setOnClickListener(v -> new TickerPickerDialog(MainActivity.this).inflateTickerPickerDialog());
     }
 
-    private void initCloseButtonListener() {
-        closeStreamButton.setOnClickListener(v -> {
-            viewModel.close(AppConstants.REGULAR_CLOSE);
-        });
-    }
-
     @Override
-    public void setListOfValues(Map<String, TickerStream> tickerStreamMap) {
-        adapter.setData(ListCreator.getStreamList(tickerStreamMap));
+    public void setListOfValues(List<TickerStream> tickerStreamList) {
+        adapter.setData(tickerStreamList);
     }
 
     @SuppressLint("CheckResult")
     @Override
     public void notifyStreamClosed(String reason) {
         Observable.just(reason)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(reasonCode -> {
-                    adapter.setData(Collections.EMPTY_LIST);
-                    if (reasonCode.equals(AppConstants.NEW_CONNECTION))
-                        viewModel.requestBinanceDataStream();
-                });
+          .observeOn(AndroidSchedulers.mainThread())
+          .subscribe(reasonCode -> {
+              adapter.setData(Collections.EMPTY_LIST);
+              if (reasonCode.equals(AppConstants.NEW_CONNECTION))
+                  viewModel.requestBinanceDataStream();
+          });
     }
 
     @Override
     public void notifyFailedConnection(String throwableResponse) {
         Snackbar snackbar = Snackbar
-                .make(mainRootLayout, throwableResponse, Snackbar.LENGTH_INDEFINITE)
-                .setAction("Try Again", v -> viewModel.requestBinanceDataStream());
+          .make(mainRootLayout, throwableResponse, Snackbar.LENGTH_INDEFINITE)
+          .setAction("Try Again", v -> viewModel.requestBinanceDataStream());
         snackbar.show();
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        new MenuInflater(this).inflate(R.menu.options_menu, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
 
-//    private void getNoRXTickerPrice(String ticker) {
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.start_service:
+                startService(new Intent(MainActivity.this, TradeHelperService.class));
+                break;
+            case R.id.stop_service:
+                stopService(new Intent(MainActivity.this, TradeHelperService.class));
+                break;
+            case R.id.close_stream:
+                viewModel.close(AppConstants.REGULAR_CLOSE);
+                break;
+            default:
+                break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    //    private void getNoRXTickerPrice(String ticker) {
 //        RetrofitSingleton.getNoRXBinanceService().getNoRXTickerPrice(ticker)
 //                .enqueue(new Callback<TickerPrice>() {
 //                    @Override

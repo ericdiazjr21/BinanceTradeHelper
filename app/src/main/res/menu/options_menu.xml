@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/start_service"
+        android:title="Start Service"></item>
+
+    <item
+        android:id="@+id/stop_service"
+        android:title="Stop Service"></item>
+
+    <item
+        android:id="@+id/close_stream"
+        android:title="Close Stream"></item>
+</menu>
