@@ -5,6 +5,7 @@ import android.util.Log;
 import com.example.binanceproject.constants.AppConstants;
 import com.example.binanceproject.network.BinanceWebSocket;
 
+import io.reactivex.Observable;
 import okhttp3.Response;
 import okhttp3.WebSocket;
 import okhttp3.WebSocketListener;
@@ -52,7 +53,7 @@ public class BinanceStreamRepository extends WebSocketListener {
     @Override
     public void onMessage(WebSocket webSocket, String text) {
         super.onMessage(webSocket, text);
-        listener.onDataStreamMessageOpen(text);
+        listener.onDataStreamMessageOpen(Observable.just(text));
         Log.d(AppConstants.BINANCE_WEB_SOCKET_TAG, "onMessage: " + text);
     }
 
@@ -74,10 +75,11 @@ public class BinanceStreamRepository extends WebSocketListener {
         super.onFailure(webSocket, t, response);
         Log.d(AppConstants.BINANCE_WEB_SOCKET_TAG, "onFailure: " + t.toString());
         listener.onConnectionError(t.toString());
+        tryConnection(requestUrl);
     }
 
     public interface OnDataStreamOpenListener {
-        void onDataStreamMessageOpen(String message);
+        void onDataStreamMessageOpen(Observable<String> message);
         void onDataStreamClosed(String reason);
         void onConnectionError(String throwableResponse);
     }
