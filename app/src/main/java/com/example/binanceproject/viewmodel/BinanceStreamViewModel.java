@@ -3,23 +3,22 @@ package com.example.binanceproject.viewmodel;
 import android.annotation.SuppressLint;
 import android.util.Log;
 
-import com.example.binanceproject.constants.AppConstants;
-import com.example.binanceproject.model.TickerStream;
-import com.example.binanceproject.repository.BinanceStreamRepository;
-import com.example.binanceproject.utils.GsonConverter;
-import com.example.binanceproject.utils.ListCreator;
+import com.example.baseresources.callbacks.TearDownManager;
+import com.example.baseresources.constants.AppConstants;
+import com.example.baseresources.model.TickerStream;
+import com.example.baseresources.repository.BinanceStreamRepository;
+import com.example.baseresources.utils.GsonConverter;
+import com.example.baseresources.utils.ListCreator;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import io.reactivex.Observable;
-import io.reactivex.ObservableSource;
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 
-public class BinanceStreamViewModel implements BinanceStreamRepository.OnDataStreamOpenListener {
+public class BinanceStreamViewModel implements BinanceStreamRepository.OnDataStreamOpenListener, TearDownManager {
 
     private static String requestUrl;
     private static BinanceStreamViewModel singleInstance;
@@ -30,7 +29,7 @@ public class BinanceStreamViewModel implements BinanceStreamRepository.OnDataStr
     private BinanceStreamViewModel() {
         this.repository = BinanceStreamRepository.getBinanceStreamRepository();
         tickerLastPriceMap = new HashMap<>();
-        repository.setListener(this);
+        repository.setStreamOpenListener(this);
     }
 
     public static BinanceStreamViewModel getSingleInstance() {
@@ -61,6 +60,10 @@ public class BinanceStreamViewModel implements BinanceStreamRepository.OnDataStr
         BinanceStreamViewModel.requestUrl = requestUrl;
     }
 
+    public TearDownManager getTearDownManager(){
+        return this;
+    }
+
     @SuppressLint("CheckResult")
     @Override
     public void onDataStreamMessageOpen(Observable<String> message) {
@@ -85,6 +88,12 @@ public class BinanceStreamViewModel implements BinanceStreamRepository.OnDataStr
         listener.notifyFailedConnection(throwableResponse);
     }
 
+    @Override
+    public void tearDown() {
+        singleInstance = null;
+        tickerLastPriceMap = null;
+        requestUrl = null;
+    }
 
     public interface OnDataReceivedListener {
         void setListOfValues(List<TickerStream> tickerStreamMap);

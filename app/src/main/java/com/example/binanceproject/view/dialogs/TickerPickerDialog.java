@@ -3,7 +3,7 @@ package com.example.binanceproject.view.dialogs;
 import android.content.Context;
 import android.support.v7.app.AlertDialog;
 
-import com.example.binanceproject.constants.AppConstants;
+import com.example.baseresources.constants.AppConstants;
 import com.example.binanceproject.viewmodel.BinanceStreamViewModel;
 
 public class TickerPickerDialog {

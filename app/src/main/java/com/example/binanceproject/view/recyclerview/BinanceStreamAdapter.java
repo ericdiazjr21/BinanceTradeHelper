@@ -7,7 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.binanceproject.R;
-import com.example.binanceproject.model.TickerStream;
+import com.example.baseresources.model.TickerStream;
 
 import java.util.ArrayList;
 import java.util.List;

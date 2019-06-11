@@ -6,14 +6,14 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.example.binanceproject.R;
-import com.example.binanceproject.model.TickerStream;
+import com.example.baseresources.model.TickerStream;
 
-public class BinanceStreamViewHolder extends RecyclerView.ViewHolder {
+class BinanceStreamViewHolder extends RecyclerView.ViewHolder {
 
     private TextView tickerName;
     private TextView tickerPrice;
 
-    public BinanceStreamViewHolder(@NonNull View itemView) {
+    BinanceStreamViewHolder(@NonNull View itemView) {
         super(itemView);
         findViews(itemView);
     }
@@ -24,7 +24,9 @@ public class BinanceStreamViewHolder extends RecyclerView.ViewHolder {
     }
 
     void onBind(TickerStream tickerStream) {
-        tickerName.setText(tickerStream.getStream());
-        tickerPrice.setText(tickerStream.getData().getLastPrice());
+        if (tickerStream != null) {
+            tickerName.setText(tickerStream.getStream());
+            tickerPrice.setText(tickerStream.getData().getLastPrice());
+        }
     }
 }

@@ -16,7 +16,8 @@
             android:enabled="true"
             android:exported="false"></service>
 
-        <activity android:name=".view.MainActivity">
+        <activity android:name=".view.MainActivity"
+            android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

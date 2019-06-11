@@ -31,8 +31,8 @@ public class NotificationGenerator {
         NotificationManager notificationManager = (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL_ID,
-              "Binance Project Notification",
-              NotificationManager.IMPORTANCE_HIGH);
+                    "Binance Project Notification",
+                    NotificationManager.IMPORTANCE_HIGH);
             notificationChannel.enableLights(true);
             notificationChannel.setLightColor(Color.RED);
             notificationChannel.enableVibration(true);
@@ -44,13 +44,13 @@ public class NotificationGenerator {
     public Notification getNotification() {
         Intent intent = new Intent(context, MainActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(context,
-          NOTIFICATION_ID, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+                NOTIFICATION_ID, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         NotificationCompat.Builder notify = new NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
-          .setContentTitle("New Order Posted!")
-          .setContentText("Coin Pair: ")
-          .setSmallIcon(R.drawable.ic_monetization_on_black_24dp)
-          .setContentIntent(pendingIntent);
+                .setContentTitle("New Order Posted!")
+                .setContentText("Coin Pair: ")
+                .setSmallIcon(R.drawable.ic_monetization_on_black_24dp)
+                .setContentIntent(pendingIntent);
         return notify.build();
     }
 
