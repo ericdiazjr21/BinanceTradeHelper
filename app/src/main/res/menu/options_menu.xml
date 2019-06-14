@@ -2,13 +2,17 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/start_service"
-        android:title="Start Service"></item>
+        android:title="Start Service" />
 
     <item
         android:id="@+id/stop_service"
-        android:title="Stop Service"></item>
+        android:title="Stop Service" />
 
     <item
         android:id="@+id/close_stream"
-        android:title="Close Stream"></item>
+        android:title="Close Stream" />
+
+    <item
+        android:id="@+id/place_order"
+        android:title="Place Order" />
 </menu>

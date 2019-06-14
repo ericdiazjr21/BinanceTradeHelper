@@ -5,6 +5,7 @@ import android.util.Log;
 
 import com.example.baseresources.callbacks.TearDownManager;
 import com.example.baseresources.constants.AppConstants;
+import com.example.baseresources.controller.AccountWebsocketListener;
 import com.example.baseresources.model.TickerStream;
 import com.example.baseresources.repository.BinanceStreamRepository;
 import com.example.baseresources.utils.GsonConverter;
@@ -16,13 +17,17 @@ import java.util.Map;
 
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.schedulers.Schedulers;
 
-public class BinanceStreamViewModel implements BinanceStreamRepository.OnDataStreamOpenListener, TearDownManager {
+public class BinanceStreamViewModel implements
+  BinanceStreamRepository.OnDataStreamOpenListener,
+  TearDownManager {
 
     private static String requestUrl;
     private static BinanceStreamViewModel singleInstance;
     private static Map<String, TickerStream> tickerLastPriceMap;
+    private CompositeDisposable compositeDisposable = new CompositeDisposable();
     private BinanceStreamRepository repository;
     private OnDataReceivedListener listener;
 
@@ -60,6 +65,10 @@ public class BinanceStreamViewModel implements BinanceStreamRepository.OnDataStr
         BinanceStreamViewModel.requestUrl = requestUrl;
     }
 
+    public void setOnDataReceivedListener(AccountWebsocketListener accountWebsocketListener){
+        repository.setAccountWebsocketListener(accountWebsocketListener);
+    }
+
     public TearDownManager getTearDownManager(){
         return this;
     }
@@ -67,15 +76,21 @@ public class BinanceStreamViewModel implements BinanceStreamRepository.OnDataStr
     @SuppressLint("CheckResult")
     @Override
     public void onDataStreamMessageOpen(Observable<String> message) {
-        message.subscribeOn(Schedulers.io())
+        if (tickerLastPriceMap != null) {
+            mapStream(message);
+        }
+
+    }
+
+    private void mapStream(Observable<String> message) {
+        compositeDisposable.add(message.subscribeOn(Schedulers.io())
           .map(json -> {
               TickerStream tickerStream = GsonConverter.tickerStreamDeserializer(json);
               tickerLastPriceMap.put(tickerStream.getStream(), tickerStream);
               return ListCreator.getStreamList(tickerLastPriceMap);
           }).observeOn(AndroidSchedulers.mainThread())
           .subscribe(tickerStreamList -> listener.setListOfValues(tickerStreamList),
-            throwable -> Log.d(AppConstants.BINANCE_STREAM_VIEW_MODEL_TAG, "accept: " + throwable.toString()));
-
+            throwable -> Log.d(AppConstants.BINANCE_STREAM_VIEW_MODEL_TAG, "accept: " + throwable.toString())));
     }
 
     @Override
@@ -93,6 +108,7 @@ public class BinanceStreamViewModel implements BinanceStreamRepository.OnDataStr
         singleInstance = null;
         tickerLastPriceMap = null;
         requestUrl = null;
+        compositeDisposable.dispose();
     }
 
     public interface OnDataReceivedListener {

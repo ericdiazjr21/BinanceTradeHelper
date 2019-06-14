@@ -16,16 +16,24 @@ public class AppConstants {
     public static final String NEW_CONNECTION = "new Connection";
     public static final String REGULAR_CLOSE = "regular_close";
 
-    public static final String BTCUSDT = "btcusdt@ticker/";
-    public static final String BNBBTC = "bnbbtc@ticker/";
-    public static final String RLCBTC = "rlcbtc@ticker/";
-    public static final String ETHBTC = "ethbtc@ticker/";
-    public static final String KEYBTC = "keybtc@ticker/";
-    public static final String POEBTC = "poebtc@ticker/";
-    public static final String QKCBTC = "qkcbtc@ticker/";
-    public static final String LENDBTC = "lendbtc@ticker/";
-    public static final String CMTBTC = "cmtbtc@ticker/";
-    public static final String RCNBTC = "rcnbtc@ticker/";
+    private static final String BTCUSDT = "btcusdt@ticker/";
+    private static final String MATICUSDT = "maticusdt@ticker/";
+    private static final String LINKUSDT = "linkusdt@ticker/";
+    private static final String BNBBTC = "bnbbtc@ticker/";
+    private static final String RLCBTC = "rlcbtc@ticker/";
+    private static final String ETHBTC = "ethbtc@ticker/";
+    private static final String KEYBTC = "keybtc@ticker/";
+    private static final String POEBTC = "poebtc@ticker/";
+    private static final String QKCBTC = "qkcbtc@ticker/";
+    private static final String LENDBTC = "lendbtc@ticker/";
+    private static final String CMTBTC = "cmtbtc@ticker/";
+    private static final String RCNBTC = "rcnbtc@ticker/";
 
-    public static final String[] ALL_TICKERS = {BTCUSDT, BNBBTC, RLCBTC, ETHBTC, KEYBTC, POEBTC, QKCBTC, LENDBTC, CMTBTC, RCNBTC};
+    public static final String[] ALL_TICKERS = {BTCUSDT, MATICUSDT, LINKUSDT, BNBBTC, RLCBTC, ETHBTC, KEYBTC, POEBTC, QKCBTC, LENDBTC, CMTBTC, RCNBTC};
+
+
+    //App function constants
+    public static final String BUY = "BUY_ORDER";
+    public static final String SELL = "SELL_ORDER";
+
 }

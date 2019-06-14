@@ -3,4 +3,9 @@
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <string-array name="buy_sell_spinner">
+        <item>Buy</item>
+        <item>Sell</item>
+    </string-array>
 </resources>

@@ -1,4 +1,4 @@
-package com.example.account;
+package com.example.account.model;
 
 import net.sealake.binance.api.client.BinanceApiAsyncRestClient;
 import net.sealake.binance.api.client.BinanceApiClientFactory;

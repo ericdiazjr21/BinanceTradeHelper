@@ -1,4 +1,4 @@
-package com.example.account.view;
+package com.example.login;
 
 
 import android.content.Context;
@@ -13,8 +13,8 @@ import android.widget.EditText;
 import android.widget.Switch;
 import android.widget.Toast;
 
-import com.example.account.R;
-import com.example.account.controller.AccountViewModel;
+import com.example.account.viewmodel.AccountViewModel;
+import com.example.baseresources.callbacks.OnFragmentInteractionListener;
 import com.example.baseresources.utils.SharedPrefsManager;
 
 public class LoginFragment extends Fragment {
@@ -98,10 +98,11 @@ public class LoginFragment extends Fragment {
     }
 
     private void initClient(String apiKey, String secKey) {
-        accountViewModel.getClient(apiKey, secKey).ping(response -> {
+        accountViewModel.getClient(apiKey, secKey).getAccount(response -> {
             Log.d(TAG, "onResponse: " + response);
             makeToast("Sign On Successful");
             listener.closeFragment();
+            listener.inflateCoinListFragment();
         });
     }
 
@@ -109,8 +110,5 @@ public class LoginFragment extends Fragment {
         Toast.makeText(rootView.getContext(), message, Toast.LENGTH_SHORT).show();
     }
 
-    public interface OnFragmentInteractionListener {
-        void closeFragment();
-    }
 
 }

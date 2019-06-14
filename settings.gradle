@@ -1,1 +1,1 @@
-include ':app', ':account', ':baseresources'
+include ':app', ':account', ':baseresources', ':login'
