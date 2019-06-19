@@ -1,5 +1,7 @@
 package com.example.service;
 
+import android.util.Log;
+
 import com.example.account.utils.TransactionMap;
 import com.example.baseresources.model.Data;
 import com.example.baseresources.utils.GsonConverter;
@@ -10,6 +12,7 @@ import io.reactivex.schedulers.Schedulers;
 
 public final class ServiceViewModel {
 
+    private static final String TAG = "ServiceViewModel";
     private static ServiceViewModel singleInstance;
     private ServiceRepository repository;
     private String requestUrl;
@@ -38,6 +41,7 @@ public final class ServiceViewModel {
               return data.getSymbol() + data.getLastPrice();
           }).distinctUntilChanged()
           .map(symbolData -> {
+              Log.d(TAG, "getBinanceStream: " + TransactionMap.getSize());
               if (TransactionMap.containsOrder(symbolData)) {
                   TransactionMap.getTransaction(symbolData).execute();
                   TransactionMap.removeTransaction(symbolData);

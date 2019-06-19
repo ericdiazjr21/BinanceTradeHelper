@@ -30,4 +30,8 @@ public final class TransactionMap {
         TRANSACTION_HASH_MAP.remove(symbol);
     }
 
+    public static int getSize() {
+        return TRANSACTION_HASH_MAP.size();
+    }
+
 }
