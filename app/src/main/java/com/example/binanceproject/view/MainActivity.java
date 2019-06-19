@@ -49,7 +49,7 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void startService() {
-        startService(new Intent(MainActivity.this, TradeHelperService.class));
+        startService(new Intent(MainActivity.this,TradeHelperService.class));
     }
 
     @Override

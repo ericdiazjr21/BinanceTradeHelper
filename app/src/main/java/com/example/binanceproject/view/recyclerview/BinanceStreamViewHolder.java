@@ -5,8 +5,8 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.TextView;
 
-import com.example.binanceproject.R;
 import com.example.baseresources.model.TickerStream;
+import com.example.binanceproject.R;
 
 class BinanceStreamViewHolder extends RecyclerView.ViewHolder {
 

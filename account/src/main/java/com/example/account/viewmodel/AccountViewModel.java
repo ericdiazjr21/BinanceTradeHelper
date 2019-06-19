@@ -27,7 +27,7 @@ public class AccountViewModel implements
 
     private static final String TAG = "AccountViewModel";
     private static AccountViewModel singleInstance;
-    private OnTransactionExecutedListener transactionExecutedListener;
+    private static OnTransactionExecutedListener transactionExecutedListener;
     private Transaction transaction;
     private Disposable disposable;
 
@@ -59,7 +59,7 @@ public class AccountViewModel implements
     }
 
     public void setTransactionExecutedListener(OnTransactionExecutedListener transactionExecutedListener) {
-        this.transactionExecutedListener = transactionExecutedListener;
+        AccountViewModel.transactionExecutedListener = transactionExecutedListener;
     }
 
     public void placeOrder(@NonNull final Order order) {
@@ -71,13 +71,12 @@ public class AccountViewModel implements
             case AppConstants.SELL:
                 transaction.placeSellOrder(order.getSymbol(), order.getStrikePrice(), order.getExecutePrice(), order.getQuantity());
                 break;
-        }
-        TransactionMap.enterTransaction(order.getSymbol() + order.getStrikePrice(), transaction);
+        }TransactionMap.enterTransaction(order.getSymbol() + order.getStrikePrice(), transaction);
     }
 
     public void checkTransactionMap(Observable<String> symbolData) {
         disposable = symbolData
-          .map(message -> GsonConverter.tickerStreamDeserializer(message))
+          .map(GsonConverter::tickerStreamDeserializer)
           .doOnNext(tickerStream -> {
               String transactionId = tickerStream.getStream()
                 .replace("@ticker", "")

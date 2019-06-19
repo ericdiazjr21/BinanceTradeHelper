@@ -1,10 +1,10 @@
+
 package com.example.binanceproject.view.fragments;
 
 
 import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
@@ -122,9 +122,9 @@ public class CoinListFragment extends Fragment implements
 
     @Override
     public void notifyFailedConnection(String throwableResponse) {
-        Snackbar snackbar = Snackbar
-          .make(mainRootLayout, throwableResponse, Snackbar.LENGTH_INDEFINITE)
-          .setAction("Try Again", v -> viewModel.requestBinanceDataStream());
+        Snackbar snackbar = Snackbar.make(mainRootLayout, throwableResponse, Snackbar.LENGTH_INDEFINITE);
+        snackbar.setAction("Try Again", v -> viewModel.requestBinanceDataStream())
+          .setAction("Dismiss", v -> snackbar.dismiss());
         snackbar.show();
     }
 

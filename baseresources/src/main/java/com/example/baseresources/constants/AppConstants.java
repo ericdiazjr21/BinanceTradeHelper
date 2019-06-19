@@ -1,9 +1,6 @@
 package com.example.baseresources.constants;
 
 public class AppConstants {
-    //Login Cred
-    public static final String API_KEY = "U1PWHrHf89SPOn4DFtqO3qTJ5W8HLcxCmHrVyKV01v0iiHvYIRBL3YZJtX925wjq";
-    public static final String SECRET_KEY = "7qIH5TYYMIlxuidTsPZsDSOj3F8NRK5d7Rf1g4ESQiuDdn8HWVd1NjEqAHLVm2Mc";
 
     //Class Tags
     public static final String BINANCE_WEB_SOCKET_TAG = "BinanceWebSocket";

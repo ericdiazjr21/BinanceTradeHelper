@@ -3,51 +3,42 @@ package com.example.binanceproject.service;
 import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
+import android.util.Log;
 
-import com.example.account.viewmodel.AccountViewModel;
-import com.example.baseresources.controller.AccountWebsocketListener;
 import com.example.baseresources.utils.NotificationGenerator;
-import com.example.binanceproject.viewmodel.BinanceStreamViewModel;
+import com.example.service.ServiceViewModel;
 
 import io.reactivex.Maybe;
-import io.reactivex.Observable;
-import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
-import io.reactivex.functions.Action;
 import io.reactivex.schedulers.Schedulers;
 
-public class TradeHelperService extends Service implements AccountWebsocketListener {
+public class TradeHelperService extends Service {
 
-    private BinanceStreamViewModel binanceStreamViewModel;
-    private AccountViewModel accountViewModel;
+    private static final String TAG = "TradeHelperService";
+    private ServiceViewModel serviceViewModel;
     private CompositeDisposable compositeDisposable = new CompositeDisposable();
-
-    public TradeHelperService() {
-    }
 
     @Override
     public void onCreate() {
         super.onCreate();
-        compositeDisposable.add(Maybe.fromAction(() -> {
-            binanceStreamViewModel = BinanceStreamViewModel.getSingleInstance();
-            binanceStreamViewModel.setOnDataReceivedListener(TradeHelperService.this::onDataReceived);
-            accountViewModel = AccountViewModel.getSingleInstance();
-        }).subscribeOn(Schedulers.io())
-          .observeOn(AndroidSchedulers.mainThread())
+        compositeDisposable.add(Maybe.fromAction(() ->
+          serviceViewModel = ServiceViewModel.getSingleInstance())
+          .subscribeOn(Schedulers.io())
           .subscribe());
-
-
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         startForeground(1, new NotificationGenerator(this).getNotificationForeground());
 
-        compositeDisposable.add(Maybe.fromAction(() ->
-          binanceStreamViewModel.requestBinanceDataStream())
-          .subscribeOn(Schedulers.io())
-          .observeOn(AndroidSchedulers.mainThread())
-          .subscribe());
+        compositeDisposable.add(serviceViewModel.getBinanceStream()
+          .doOnNext(symbolName -> {
+              if (symbolName.equals("Order Processed"))
+                  new NotificationGenerator(TradeHelperService.this)
+                    .sendNotification();
+          }).subscribe(symbolStream -> Log.d(TAG, "accept: " + symbolStream),
+            throwable -> Log.d(TAG, "accept: " + throwable.getMessage())));
+
         return START_NOT_STICKY;
     }
 
@@ -56,11 +47,6 @@ public class TradeHelperService extends Service implements AccountWebsocketListe
     public IBinder onBind(Intent intent) {
         // TODO: Return the communication channel to the service.
         throw new UnsupportedOperationException("Not yet implemented");
-    }
-
-    @Override
-    public void onDataReceived(Observable<String> symbolData) {
-        accountViewModel.checkTransactionMap(symbolData);
     }
 
     @Override

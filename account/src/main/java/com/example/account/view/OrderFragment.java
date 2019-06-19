@@ -49,7 +49,7 @@ public final class OrderFragment extends Fragment {
 
         EditText coinPairEditText = view.findViewById(R.id.coin_pair_edit_text);
         EditText strikePriceEditText = view.findViewById(R.id.strike_price_edit_text);
-        EditText purchasePriceEditText = view.findViewById(R.id.purchase_price_edit_text);
+        EditText executePriceEditText = view.findViewById(R.id.purchase_price_edit_text);
         EditText quantityEditText = view.findViewById(R.id.quantity_edit_text);
 
         Spinner orderTypeSpinner = view.findViewById(R.id.buy_sell_spinner);
@@ -74,17 +74,17 @@ public final class OrderFragment extends Fragment {
             }
         });
 
-        coinPairEditText.setText("LINKUSDT");
-        strikePriceEditText.setText("1.55500000");
-        purchasePriceEditText.setText("1.55000000");
-        quantityEditText.setText("387.95");
+        coinPairEditText.setText("MATICUSDT");
+        strikePriceEditText.setText("0.02407000");
+        executePriceEditText.setText("0.04000000");
+        quantityEditText.setText("577.36");
 
         view.<Button>findViewById(R.id.submit_order_button).setOnClickListener(v -> {
               accountViewModel
                 .beginTransaction()
                 .placeOrder(new Order(coinPairEditText.getText().toString().toUpperCase(),
                   strikePriceEditText.getText().toString(),
-                  purchasePriceEditText.getText().toString(),
+                  executePriceEditText.getText().toString(),
                   quantityEditText.getText().toString(), orderType));
 
               interactionListener.closeFragment();
