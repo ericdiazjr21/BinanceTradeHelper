@@ -2,7 +2,9 @@ package com.example.account.utils;
 
 import com.example.account.model.Transaction;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import io.reactivex.annotations.NonNull;
 
@@ -32,6 +34,10 @@ public final class TransactionMap {
 
     public static int getSize() {
         return TRANSACTION_HASH_MAP.size();
+    }
+
+    public static List<Transaction> getAllTransactionsList() {
+        return new ArrayList<>(TRANSACTION_HASH_MAP.values());
     }
 
 }

@@ -35,11 +35,13 @@ public final class ServiceViewModel {
     public Observable<String> getBinanceStream() {
         return repository.getBinanceWebSocketStream(requestUrl)
           .subscribeOn(Schedulers.io())
+          .retry()
           .filter(message -> message.startsWith("{\"stream\""))
           .map(streamMessage -> {
               Data data = GsonConverter.tickerStreamDeserializer(streamMessage).getData();
               return data.getSymbol() + data.getLastPrice();
-          }).distinctUntilChanged()
+          })
+          .distinctUntilChanged()
           .map(symbolData -> {
               Log.d(TAG, "getBinanceStream: " + TransactionMap.getSize());
               if (TransactionMap.containsOrder(symbolData)) {
