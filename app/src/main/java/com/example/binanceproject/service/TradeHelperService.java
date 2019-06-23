@@ -35,13 +35,17 @@ public class TradeHelperService extends Service {
           .doOnNext(symbolName -> {
               if (symbolName.equals("Order Processed"))
                   new NotificationGenerator(TradeHelperService.this)
-                    .sendNotification();
+                    .sendNotification(symbolName, "Order Processed!");
           }).subscribe(symbolStream -> Log.d(TAG, "accept: " + symbolStream),
-            throwable -> Log.d(TAG, "accept: " + throwable.getMessage())));
+            throwable -> {
+                Log.d(TAG, "accept: " + throwable.getMessage());
+                new NotificationGenerator(this)
+                  .sendNotification("WebSocket Error", "Connection failed: " + throwable.getMessage());
+            }, () -> new NotificationGenerator(TradeHelperService.this)
+              .sendNotification("WebSocket Closed", "Might be a regular close!")));
 
         return START_NOT_STICKY;
     }
-
 
     @Override
     public IBinder onBind(Intent intent) {

@@ -53,14 +53,14 @@ public class NotificationGenerator {
         }
     }
 
-    private Notification getNotification() {
+    private Notification getNotification(String title, String message) {
         Intent intent = new Intent(context, context.getClass());
         PendingIntent pendingIntent = PendingIntent.getActivity(context,
           NOTIFICATION_ID, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         NotificationCompat.Builder notify = new NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
-          .setContentTitle("New Order Posted!")
-          .setContentText("Coin Pair: ")
+          .setContentTitle(title)
+          .setContentText(message)
           .setSmallIcon(R.drawable.ic_monetization_on_black_24dp)
           .setContentIntent(pendingIntent)
           .setGroup(GROUP_KEY);
@@ -80,8 +80,8 @@ public class NotificationGenerator {
         return notify.build();
     }
 
-    public void sendNotification() {
-        NotificationManagerCompat.from(context).notify(NOTIFICATION_ID, getNotification());
+    public void sendNotification(String title, String message) {
+        NotificationManagerCompat.from(context).notify(NOTIFICATION_ID, getNotification(title, message));
     }
 
 }

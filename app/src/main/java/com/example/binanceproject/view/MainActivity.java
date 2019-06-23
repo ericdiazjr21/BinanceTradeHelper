@@ -49,7 +49,7 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void startService() {
-        startService(new Intent(MainActivity.this,TradeHelperService.class));
+        startService(new Intent(MainActivity.this, TradeHelperService.class));
     }
 
     @Override
@@ -58,7 +58,7 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void sendNotification() {
-        new NotificationGenerator(this).sendNotification();
+    public void sendNotification(String title, String message) {
+        new NotificationGenerator(this).sendNotification(title, message);
     }
 }

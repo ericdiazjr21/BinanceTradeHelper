@@ -28,8 +28,8 @@ public final class TransactionMap {
         return TRANSACTION_HASH_MAP.get(symbol);
     }
 
-    public static void removeTransaction(@NonNull final String symbol) {
-        TRANSACTION_HASH_MAP.remove(symbol);
+    public static Transaction removeTransaction(@NonNull final String symbol) {
+        return  TRANSACTION_HASH_MAP.remove(symbol);
     }
 
     public static int getSize() {
