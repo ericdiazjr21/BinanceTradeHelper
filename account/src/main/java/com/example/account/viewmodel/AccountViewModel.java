@@ -10,12 +10,16 @@ import com.example.account.utils.TransactionMap;
 import com.example.baseresources.callbacks.TearDownManager;
 import com.example.baseresources.constants.AppConstants;
 import com.example.baseresources.controller.AccountWebsocketListener;
+import com.example.baseresources.model.TickerPrice;
 import com.example.baseresources.repository.BinanceStreamRepository;
 import com.example.baseresources.utils.GsonConverter;
 
 import net.sealake.binance.api.client.BinanceApiAsyncRestClient;
+import net.sealake.binance.api.client.BinanceApiCallback;
+import net.sealake.binance.api.client.domain.account.Account;
 
 import io.reactivex.Observable;
+import io.reactivex.Single;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.disposables.Disposable;
@@ -30,9 +34,10 @@ public class AccountViewModel implements
     private static OnTransactionExecutedListener transactionExecutedListener;
     private Transaction transaction;
     private Disposable disposable;
+    private final BinanceStreamRepository streamRepository;
 
     private AccountViewModel() {
-        BinanceStreamRepository streamRepository = BinanceStreamRepository.getBinanceStreamRepository();
+        streamRepository = BinanceStreamRepository.getBinanceStreamRepository();
         streamRepository.setAccountWebsocketListener(this);
     }
 
@@ -43,14 +48,21 @@ public class AccountViewModel implements
         return singleInstance;
     }
 
-    public TearDownManager getTearDownManager() {
-        return this;
-    }
-
     public BinanceApiAsyncRestClient getClient(@NonNull final String apiKey,
                                                @NonNull final String secKey) {
-        CurrentClient.setCurrentClient(new Client(apiKey, secKey).create());
-        return CurrentClient.getCurrentClient();
+        BinanceApiAsyncRestClient currentClient = new Client(apiKey, secKey).create();
+        CurrentClient.setCurrentClient(currentClient);
+        return currentClient;
+    }
+
+    public Single<String> getTickerPrice(String symbol) {
+        return streamRepository.getTickerPrice(symbol)
+          .subscribeOn(Schedulers.io())
+          .map(TickerPrice::getPrice);
+    }
+
+    public void getAccountBalance(BinanceApiCallback<Account> accountBinanceApiCallback) {
+        CurrentClient.getCurrentClient().getAccount(accountBinanceApiCallback);
     }
 
     public AccountViewModel beginTransaction() {
@@ -75,7 +87,7 @@ public class AccountViewModel implements
         TransactionMap.enterTransaction(order.getSymbol() + order.getStrikePrice(), transaction);
     }
 
-    public void checkTransactionMap(Observable<String> symbolData) {
+    private void checkTransactionMap(Observable<String> symbolData) {
         disposable = symbolData
           .map(GsonConverter::tickerStreamDeserializer)
           .doOnNext(tickerStream -> {
@@ -91,6 +103,10 @@ public class AccountViewModel implements
           }).subscribeOn(Schedulers.io())
           .observeOn(AndroidSchedulers.mainThread())
           .subscribe(throwable -> Log.d(TAG, "accept: " + throwable.toString()));
+    }
+
+    public TearDownManager getTearDownManager() {
+        return this;
     }
 
     @Override
