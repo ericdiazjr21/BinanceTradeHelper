@@ -17,7 +17,7 @@ public final class Transaction {
     private String strikePrice;
     private String executePrice;
     private String quantity;
-    private String ordertType;
+    private String orderType;
 
 
     public Transaction() {
@@ -31,7 +31,7 @@ public final class Transaction {
         this.strikePrice = strikePrice;
         this.quantity = quantity;
         this.executePrice = purchasePrice;
-        this.ordertType = AppConstants.BUY;
+        this.orderType = AppConstants.BUY;
     }
 
     public void placeSellOrder(@NonNull final String symbol,
@@ -42,14 +42,15 @@ public final class Transaction {
         this.strikePrice = strikePrice;
         this.quantity = quantity;
         this.executePrice = purchasePrice;
-        this.ordertType = AppConstants.SELL;
+        this.orderType = AppConstants.SELL;
     }
 
     public void execute() {
-        if(ordertType.equals(AppConstants.BUY)){
+        Log.d(TAG, "execute: " + this.toString());
+        if (orderType.equals(AppConstants.BUY)) {
             CurrentClient.getCurrentClient().newOrder(NewOrder.limitBuy(symbol, TimeInForce.GTC, quantity, executePrice),
               response -> Log.d(TAG, "onResponse: " + response.getStatus()));
-        }else{
+        } else {
             CurrentClient.getCurrentClient().newOrder(NewOrder.limitSell(symbol, TimeInForce.GTC, quantity, executePrice),
               response -> Log.d(TAG, "onResponse: " + response.getStatus()));
         }
@@ -71,7 +72,18 @@ public final class Transaction {
         return strikePrice;
     }
 
-    public String getOrdertType() {
-        return ordertType;
+    public String getOrderType() {
+        return orderType;
+    }
+
+    @Override
+    public String toString() {
+        return "Transaction{" +
+          "symbol='" + symbol + '\'' +
+          ", strikePrice='" + strikePrice + '\'' +
+          ", executePrice='" + executePrice + '\'' +
+          ", quantity='" + quantity + '\'' +
+          ", orderType='" + orderType + '\'' +
+          '}';
     }
 }
