@@ -71,7 +71,8 @@ public class AccountViewModel implements
             case AppConstants.SELL:
                 transaction.placeSellOrder(order.getSymbol(), order.getStrikePrice(), order.getExecutePrice(), order.getQuantity());
                 break;
-        }TransactionMap.enterTransaction(order.getSymbol() + order.getStrikePrice(), transaction);
+        }
+        TransactionMap.enterTransaction(order.getSymbol() + order.getStrikePrice(), transaction);
     }
 
     public void checkTransactionMap(Observable<String> symbolData) {
@@ -80,12 +81,12 @@ public class AccountViewModel implements
           .doOnNext(tickerStream -> {
               String transactionId = tickerStream.getStream()
                 .replace("@ticker", "")
-                .toUpperCase()  + tickerStream.getData().getLastPrice();
+                .toUpperCase() + tickerStream.getData().getLastPrice();
               Log.d(TAG, "onDataReceived: " + TransactionMap.containsOrder(transactionId));
               if (TransactionMap.containsOrder(transactionId)) {
                   TransactionMap.getTransaction(transactionId).execute();
-                  TransactionMap.removeTransaction(transactionId);
-                  transactionExecutedListener.sendNotification();
+                  Transaction transaction = TransactionMap.removeTransaction(transactionId);
+                  transactionExecutedListener.sendNotification("New Order Posted!", transaction.getSymbol());
               }
           }).subscribeOn(Schedulers.io())
           .observeOn(AndroidSchedulers.mainThread())
@@ -107,6 +108,7 @@ public class AccountViewModel implements
 
 
     public interface OnTransactionExecutedListener {
-        void sendNotification();
+        void sendNotification(@NonNull final String title,
+                              @NonNull final String message);
     }
 }

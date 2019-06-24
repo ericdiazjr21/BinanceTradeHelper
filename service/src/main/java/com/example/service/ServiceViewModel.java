@@ -35,7 +35,6 @@ public final class ServiceViewModel {
     public Observable<String> getBinanceStream() {
         return repository.getBinanceWebSocketStream(requestUrl)
           .subscribeOn(Schedulers.io())
-          .retry()
           .filter(message -> message.startsWith("{\"stream\""))
           .map(streamMessage -> {
               Data data = GsonConverter.tickerStreamDeserializer(streamMessage).getData();
@@ -48,7 +47,8 @@ public final class ServiceViewModel {
                   TransactionMap.getTransaction(symbolData).execute();
                   TransactionMap.removeTransaction(symbolData);
                   return "Order Processed";
-              }return symbolData;
+              }
+              return symbolData;
           });
     }
 

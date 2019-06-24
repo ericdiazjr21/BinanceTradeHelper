@@ -2,8 +2,11 @@ package com.example.binanceproject.view.dialogs;
 
 import android.content.Context;
 import android.support.v7.app.AlertDialog;
+import android.view.LayoutInflater;
+import android.widget.EditText;
 
 import com.example.baseresources.constants.AppConstants;
+import com.example.binanceproject.R;
 import com.example.binanceproject.viewmodel.BinanceStreamViewModel;
 import com.example.service.ServiceViewModel;
 
@@ -22,23 +25,37 @@ public class TickerPickerDialog {
 
     public void inflateTickerPickerDialog() {
         StringBuilder multipleStreamUrl = new StringBuilder(AppConstants.MULTIPLE_STREAMS);
+        EditText coinPairEditText = (EditText) LayoutInflater.from(context).inflate(R.layout.ticker_picker_dialog_item_view, null);
         new AlertDialog.Builder(context)
+          .setCustomTitle(coinPairEditText)
           .setMultiChoiceItems(AppConstants.ALL_TICKERS, null,
             (dialog, which, isChecked) -> {
                 if (isChecked) {
                     multipleStreamUrl.append(AppConstants.ALL_TICKERS[which]);
+                }else{
+                    multipleStreamUrl.delete(multipleStreamUrl.length() - AppConstants.ALL_TICKERS[which].length(),multipleStreamUrl.length());
                 }
+
+
             })
           .setPositiveButton("Done", (dialog, which) -> {
               context = null;
-              serviceViewModel.setRequestUrl(multipleStreamUrl.toString());
-              viewModel.setRequestUrl(multipleStreamUrl.toString());
-              if (!viewModel.close(AppConstants.NEW_CONNECTION)) {
-                  viewModel.requestBinanceDataStream();
+              if (coinPairEditText != null && !coinPairEditText.getText().toString().equals("")) {
+                  multipleStreamUrl.append(coinPairEditText.getText() + "@ticker/");
+                  initStream(multipleStreamUrl);
+              } else {
+                  initStream(multipleStreamUrl);
               }
-
               dialog.dismiss();
           }).setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss()).show();
+    }
+
+    private void initStream(StringBuilder multipleStreamUrl) {
+        serviceViewModel.setRequestUrl(multipleStreamUrl.toString());
+        viewModel.setRequestUrl(multipleStreamUrl.toString());
+        if (!viewModel.close(AppConstants.NEW_CONNECTION)) {
+            viewModel.requestBinanceDataStream();
+        }
     }
 
 
