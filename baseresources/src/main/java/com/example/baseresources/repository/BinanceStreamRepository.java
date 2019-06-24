@@ -4,9 +4,12 @@ import android.util.Log;
 
 import com.example.baseresources.constants.AppConstants;
 import com.example.baseresources.controller.AccountWebsocketListener;
+import com.example.baseresources.model.TickerPrice;
 import com.example.baseresources.network.BinanceWebSocket;
+import com.example.baseresources.network.RetrofitSingleton;
 
 import io.reactivex.Observable;
+import io.reactivex.Single;
 import okhttp3.Response;
 import okhttp3.WebSocket;
 import okhttp3.WebSocketListener;
@@ -50,6 +53,10 @@ public class BinanceStreamRepository extends WebSocketListener {
 
     private void tryConnection(String streams) {
         this.webSocket.run(this.webSocket.getOkHttpClient(), this.webSocket.getRequest(streams), this);
+    }
+
+    public Single<TickerPrice> getTickerPrice(String symbol){
+        return RetrofitSingleton.getBinanceService().getTickerPrice(symbol);
     }
 
     public boolean isWebSocketOpen() {
