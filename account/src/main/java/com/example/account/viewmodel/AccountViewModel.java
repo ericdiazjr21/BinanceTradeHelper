@@ -1,49 +1,62 @@
 package com.example.account.viewmodel;
 
+import android.arch.lifecycle.ViewModel;
+import android.content.Context;
 import android.util.Log;
 
 import com.example.account.model.Client;
 import com.example.account.model.Order;
 import com.example.account.model.Transaction;
 import com.example.account.utils.CurrentClient;
+import com.example.account.utils.TransactionDeserializer;
 import com.example.account.utils.TransactionMap;
 import com.example.baseresources.callbacks.TearDownManager;
 import com.example.baseresources.constants.AppConstants;
 import com.example.baseresources.controller.AccountWebsocketListener;
 import com.example.baseresources.model.TickerPrice;
+import com.example.baseresources.model.interfaces.TradeHelperTransaction;
 import com.example.baseresources.repository.BinanceStreamRepository;
-import com.example.baseresources.utils.GsonConverter;
+import com.example.baseresources.repository.OrdersRepository;
+import com.example.baseresources.utils.TickerStreamConverter;
 
 import net.sealake.binance.api.client.BinanceApiAsyncRestClient;
 import net.sealake.binance.api.client.BinanceApiCallback;
 import net.sealake.binance.api.client.domain.account.Account;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 
-public class AccountViewModel implements
+
+public class AccountViewModel extends ViewModel implements
   AccountWebsocketListener,
   TearDownManager {
 
     private static final String TAG = "AccountViewModel";
     private static AccountViewModel singleInstance;
     private static OnTransactionExecutedListener transactionExecutedListener;
+    private final BinanceStreamRepository streamRepository;
+    private final OrdersRepository ordersRepository;
     private Transaction transaction;
     private Disposable disposable;
-    private final BinanceStreamRepository streamRepository;
 
-    private AccountViewModel() {
+    private AccountViewModel(Context context) {
         streamRepository = BinanceStreamRepository.getBinanceStreamRepository();
         streamRepository.setAccountWebsocketListener(this);
+        ordersRepository = new OrdersRepository(context);
     }
 
-    public static AccountViewModel getSingleInstance() {
+    public static AccountViewModel getSingleInstance(Context context) {
         if (singleInstance == null) {
-            singleInstance = new AccountViewModel();
+            singleInstance = new AccountViewModel(context);
         }
         return singleInstance;
     }
@@ -84,12 +97,25 @@ public class AccountViewModel implements
                 transaction.placeSellOrder(order.getSymbol(), order.getStrikePrice(), order.getExecutePrice(), order.getQuantity());
                 break;
         }
-        TransactionMap.enterTransaction(order.getSymbol() + order.getStrikePrice(), transaction);
+        ordersRepository.addTransaction(transaction);
+//        TransactionMap.addTransaction(order.getSymbol() + order.getStrikePrice(), transaction);
+    }
+
+    public Single<List<TradeHelperTransaction>> getAllTransactions() {
+        return ordersRepository.getAllTransactions()
+          .subscribeOn(Schedulers.io())
+          .map(transactionMap -> {
+              List<TradeHelperTransaction> transactionList = new ArrayList<>();
+              for (String transactionJson : transactionMap.values()) {
+                  transactionList.add(TransactionDeserializer.deserializeTransaction(transactionJson));
+              }
+              return transactionList;
+          });
     }
 
     private void checkTransactionMap(Observable<String> symbolData) {
         disposable = symbolData
-          .map(GsonConverter::tickerStreamDeserializer)
+          .map(TickerStreamConverter::tickerStreamDeserializer)
           .doOnNext(tickerStream -> {
               String transactionId = tickerStream.getStream()
                 .replace("@ticker", "")

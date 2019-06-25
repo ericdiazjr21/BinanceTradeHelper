@@ -24,13 +24,16 @@ import com.example.account.view.recyclerview.TransactionMapAdapter;
 import com.example.account.viewmodel.AccountViewModel;
 import com.example.baseresources.callbacks.OnFragmentInteractionListener;
 import com.example.baseresources.constants.AppConstants;
+import com.example.baseresources.model.interfaces.TradeHelperTransaction;
 
 import java.text.DecimalFormat;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Completable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 
 public final class OrderFragment extends Fragment {
@@ -67,7 +70,7 @@ public final class OrderFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_order, container, false);
-        accountViewModel = AccountViewModel.getSingleInstance();
+        accountViewModel = AccountViewModel.getSingleInstance(getContext());
         findViews(view);
         initQuantityEditTextOnLongPressListener();
         initSpinner(view);
@@ -91,8 +94,10 @@ public final class OrderFragment extends Fragment {
         RecyclerView recyclerView = view.findViewById(R.id.transaction_map_recycler_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         adapter = new TransactionMapAdapter();
-        adapter.setData(TransactionMap.getAllTransactionsList());
         recyclerView.setAdapter(adapter);
+        compositeDisposable.add(accountViewModel.getAllTransactions()
+          .observeOn(AndroidSchedulers.mainThread())
+          .subscribe(tradeHelperTransactions -> adapter.setData(tradeHelperTransactions)));
     }
 
     private void initSpinner(View view) {
@@ -158,8 +163,12 @@ public final class OrderFragment extends Fragment {
                   strikePriceEditText.getText().toString(),
                   executePriceEditText.getText().toString(),
                   quantityEditText.getText().toString(), orderType));
-              adapter.setData(TransactionMap.getAllTransactionsList());
-              Toast.makeText(view.getContext(), "Order Submitted", Toast.LENGTH_SHORT).show();
+              compositeDisposable.add(accountViewModel.getAllTransactions()
+              .observeOn(AndroidSchedulers.mainThread())
+              .subscribe(tradeHelperTransactions -> {
+                  adapter.setData(tradeHelperTransactions);
+                  Toast.makeText(view.getContext(), "Order Submitted", Toast.LENGTH_SHORT).show();
+              }));
           }
 
         );

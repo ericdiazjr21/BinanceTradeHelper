@@ -4,7 +4,7 @@ import android.util.Log;
 
 import com.example.account.utils.TransactionMap;
 import com.example.baseresources.model.Data;
-import com.example.baseresources.utils.GsonConverter;
+import com.example.baseresources.utils.TickerStreamConverter;
 
 import io.reactivex.Observable;
 import io.reactivex.annotations.NonNull;
@@ -37,7 +37,7 @@ public final class ServiceViewModel {
           .subscribeOn(Schedulers.io())
           .filter(message -> message.startsWith("{\"stream\""))
           .map(streamMessage -> {
-              Data data = GsonConverter.tickerStreamDeserializer(streamMessage).getData();
+              Data data = TickerStreamConverter.tickerStreamDeserializer(streamMessage).getData();
               return data.getSymbol() + data.getLastPrice();
           })
           .distinctUntilChanged()

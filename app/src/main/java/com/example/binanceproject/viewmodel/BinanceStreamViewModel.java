@@ -8,7 +8,7 @@ import com.example.baseresources.constants.AppConstants;
 import com.example.baseresources.controller.AccountWebsocketListener;
 import com.example.baseresources.model.TickerStream;
 import com.example.baseresources.repository.BinanceStreamRepository;
-import com.example.baseresources.utils.GsonConverter;
+import com.example.baseresources.utils.TickerStreamConverter;
 import com.example.baseresources.utils.ListCreator;
 
 import java.util.HashMap;
@@ -85,7 +85,7 @@ public class BinanceStreamViewModel implements
     private void mapStream(Observable<String> message) {
         compositeDisposable.add(message.subscribeOn(Schedulers.io())
           .map(json -> {
-              TickerStream tickerStream = GsonConverter.tickerStreamDeserializer(json);
+              TickerStream tickerStream = TickerStreamConverter.tickerStreamDeserializer(json);
               tickerLastPriceMap.put(tickerStream.getStream(), tickerStream);
               return ListCreator.getStreamList(tickerLastPriceMap);
           }).observeOn(AndroidSchedulers.mainThread())

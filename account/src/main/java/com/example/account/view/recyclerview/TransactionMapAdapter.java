@@ -6,14 +6,14 @@ import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
 import com.example.account.R;
-import com.example.account.model.Transaction;
+import com.example.baseresources.model.interfaces.TradeHelperTransaction;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class TransactionMapAdapter extends RecyclerView.Adapter<TransactionMapViewHolder> {
 
-    private List<Transaction> transactionList = new ArrayList<>();
+    private List<TradeHelperTransaction> transactionList = new ArrayList<>();
 
     @NonNull
     @Override
@@ -32,7 +32,7 @@ public class TransactionMapAdapter extends RecyclerView.Adapter<TransactionMapVi
         return transactionList.size();
     }
 
-    public void setData(List<Transaction> transactionList) {
+    public void setData(List<TradeHelperTransaction> transactionList) {
         this.transactionList = transactionList;
         notifyDataSetChanged();
     }
