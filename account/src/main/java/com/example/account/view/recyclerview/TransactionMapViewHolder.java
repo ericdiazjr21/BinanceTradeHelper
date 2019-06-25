@@ -7,6 +7,7 @@ import android.widget.TextView;
 
 import com.example.account.R;
 import com.example.account.model.Transaction;
+import com.example.baseresources.model.interfaces.TradeHelperTransaction;
 
 public class TransactionMapViewHolder extends RecyclerView.ViewHolder {
 
@@ -14,7 +15,7 @@ public class TransactionMapViewHolder extends RecyclerView.ViewHolder {
         super(itemView);
     }
 
-    public void onBind(Transaction transaction) {
+    public void onBind(TradeHelperTransaction transaction) {
         itemView.<TextView>findViewById(R.id.symbol_value_text_view).setText(transaction.getSymbol());
         itemView.<TextView>findViewById(R.id.strike_price_value_text_view).setText(transaction.getStrikePrice());
         itemView.<TextView>findViewById(R.id.execute_price_value_text_view).setText(transaction.getExecutePrice());

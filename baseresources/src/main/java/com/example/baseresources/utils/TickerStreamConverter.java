@@ -6,9 +6,9 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 
-public final class GsonConverter {
+public final class TickerStreamConverter {
 
-    private GsonConverter() {
+    private TickerStreamConverter() {
     }
 
     public static Data dataDeserializer(String message) {

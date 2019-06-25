@@ -66,7 +66,7 @@ public class LoginFragment extends Fragment {
     }
 
     private void initViewModel() {
-        accountViewModel = AccountViewModel.getSingleInstance();
+        accountViewModel = AccountViewModel.getSingleInstance(getContext());
     }
 
     private void checkSharedPrefs() {

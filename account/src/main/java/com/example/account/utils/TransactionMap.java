@@ -15,8 +15,8 @@ public final class TransactionMap {
     private TransactionMap() {
     }
 
-    public static void enterTransaction(@NonNull final String symbol,
-                                        @NonNull final Transaction transaction) {
+    public static void addTransaction(@NonNull final String symbol,
+                                      @NonNull final Transaction transaction) {
         TRANSACTION_HASH_MAP.put(symbol, transaction);
     }
 
@@ -39,5 +39,4 @@ public final class TransactionMap {
     public static List<Transaction> getAllTransactionsList() {
         return new ArrayList<>(TRANSACTION_HASH_MAP.values());
     }
-
 }
