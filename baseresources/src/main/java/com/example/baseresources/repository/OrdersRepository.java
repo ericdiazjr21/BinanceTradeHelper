@@ -8,7 +8,8 @@ import com.example.baseresources.model.interfaces.TradeHelperTransaction;
 
 import java.util.Map;
 
-import io.reactivex.Single;
+import io.reactivex.Completable;
+import io.reactivex.Observable;
 import io.reactivex.annotations.NonNull;
 
 public final class OrdersRepository {
@@ -19,15 +20,15 @@ public final class OrdersRepository {
         database = AccountDatabase.getSingleInstance(context);
     }
 
-    public void addTransaction(@NonNull final TradeHelperTransaction transaction) {
-        database.addTransaction(transaction);
+    public Completable addTransaction(@NonNull final TradeHelperTransaction transaction) {
+        return database.addTransaction(transaction);
     }
 
-    public void deleteTransaction(@NonNull final TradeHelperTransaction transaction) {
-        database.deleteTransaction(transaction);
+    public Completable deleteTransaction(@NonNull final TradeHelperTransaction transaction) {
+        return database.deleteTransaction(transaction);
     }
 
-    public Single<Map<String, String>> getAllTransactions() {
+    public Observable<Map<String, String>> getAllTransactions() {
         return database.getAllTransactions();
     }
 }

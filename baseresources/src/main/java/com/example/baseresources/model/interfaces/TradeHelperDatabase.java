@@ -2,12 +2,13 @@ package com.example.baseresources.model.interfaces;
 
 import java.util.Map;
 
-import io.reactivex.Single;
+import io.reactivex.Completable;
+import io.reactivex.Observable;
 
 public interface TradeHelperDatabase {
-    void addTransaction(TradeHelperTransaction transaction);
+    Completable addTransaction(TradeHelperTransaction transaction);
 
-    void deleteTransaction(TradeHelperTransaction transaction);
+    Completable deleteTransaction(TradeHelperTransaction transaction);
 
-    Single<Map<String, String>> getAllTransactions();
+    Observable<Map<String, String>> getAllTransactions();
 }

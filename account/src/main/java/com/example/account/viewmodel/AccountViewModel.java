@@ -25,14 +25,14 @@ import net.sealake.binance.api.client.domain.account.Account;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.Random;
 
+import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.annotations.NonNull;
-import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Function;
+import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.schedulers.Schedulers;
 
 
@@ -45,8 +45,9 @@ public class AccountViewModel extends ViewModel implements
     private static OnTransactionExecutedListener transactionExecutedListener;
     private final BinanceStreamRepository streamRepository;
     private final OrdersRepository ordersRepository;
+    private OnTransactionDeletedListener transactionDeletedListener;
     private Transaction transaction;
-    private Disposable disposable;
+    private CompositeDisposable compositeDisposable = new CompositeDisposable();
 
     private AccountViewModel(Context context) {
         streamRepository = BinanceStreamRepository.getBinanceStreamRepository();
@@ -79,7 +80,7 @@ public class AccountViewModel extends ViewModel implements
     }
 
     public AccountViewModel beginTransaction() {
-        transaction = new Transaction();
+        transaction = new Transaction(new Random().nextInt(9999999));
         return this;
     }
 
@@ -87,34 +88,54 @@ public class AccountViewModel extends ViewModel implements
         AccountViewModel.transactionExecutedListener = transactionExecutedListener;
     }
 
-    public void placeOrder(@NonNull final Order order) {
-        Log.d(TAG, "placeOrder: " + order.getSymbol());
-        switch (order.getOrderType()) {
-            case AppConstants.BUY:
-                transaction.placeBuyOrder(order.getSymbol(), order.getStrikePrice(), order.getExecutePrice(), order.getQuantity());
-                break;
-            case AppConstants.SELL:
-                transaction.placeSellOrder(order.getSymbol(), order.getStrikePrice(), order.getExecutePrice(), order.getQuantity());
-                break;
-        }
-        ordersRepository.addTransaction(transaction);
-//        TransactionMap.addTransaction(order.getSymbol() + order.getStrikePrice(), transaction);
+    public Completable placeOrder(@NonNull final Order order) {
+        return Completable.fromAction(() -> {
+            Log.d(TAG, "placeOrder: " + order.getSymbol());
+            switch (order.getOrderType()) {
+                case AppConstants.BUY:
+                    transaction.placeBuyOrder(order.getSymbol(), order.getStrikePrice(), order.getExecutePrice(), order.getQuantity());
+                    break;
+                case AppConstants.SELL:
+                    transaction.placeSellOrder(order.getSymbol(), order.getStrikePrice(), order.getExecutePrice(), order.getQuantity());
+                    break;
+            }
+        }).mergeWith(ordersRepository.addTransaction(transaction));
+
     }
 
-    public Single<List<TradeHelperTransaction>> getAllTransactions() {
+    public Observable<List<TradeHelperTransaction>> getAllTransactions() {
         return ordersRepository.getAllTransactions()
           .subscribeOn(Schedulers.io())
-          .map(transactionMap -> {
+          .map(jsonTransactionMap -> {
+              for (String transactionJson : jsonTransactionMap.values()) {
+                  Transaction transaction = (Transaction) TransactionDeserializer.deserializeTransaction(transactionJson);
+                  TransactionMap.addTransaction(transaction.getSymbol() + transaction.getStrikePrice(), transaction);
+                  Log.d(TAG, "getAllTransactions: " + TransactionMap.getSize());
+              }
               List<TradeHelperTransaction> transactionList = new ArrayList<>();
-              for (String transactionJson : transactionMap.values()) {
+              for (String transactionJson : jsonTransactionMap.values()) {
                   transactionList.add(TransactionDeserializer.deserializeTransaction(transactionJson));
               }
               return transactionList;
           });
+
+    }
+
+    public void deleteTransaction(TradeHelperTransaction transaction) {
+        compositeDisposable.add(Completable.fromAction(() -> {
+            compositeDisposable.add(ordersRepository.deleteTransaction(transaction)
+              .subscribe(() -> Log.d(TAG, "run: database delete complete"),
+                throwable -> Log.d(TAG, "accept: " + throwable.getMessage())));
+            TransactionMap.removeTransaction(transaction.getSymbol() + transaction.getStrikePrice());
+        }).subscribeOn(Schedulers.io())
+          .subscribe(() -> {
+              Log.d(TAG, "run: Transaction Deleted " + TransactionMap.getSize());
+              transactionDeletedListener.transactionDeleted();
+          }));
     }
 
     private void checkTransactionMap(Observable<String> symbolData) {
-        disposable = symbolData
+        compositeDisposable.add(symbolData
           .map(TickerStreamConverter::tickerStreamDeserializer)
           .doOnNext(tickerStream -> {
               String transactionId = tickerStream.getStream()
@@ -128,7 +149,11 @@ public class AccountViewModel extends ViewModel implements
               }
           }).subscribeOn(Schedulers.io())
           .observeOn(AndroidSchedulers.mainThread())
-          .subscribe(throwable -> Log.d(TAG, "accept: " + throwable.toString()));
+          .subscribe(throwable -> Log.d(TAG, "accept: " + throwable.toString())));
+    }
+
+    public void setTransactionDeletedListener(OnTransactionDeletedListener transactionDeletedListener) {
+        this.transactionDeletedListener = transactionDeletedListener;
     }
 
     public TearDownManager getTearDownManager() {
@@ -143,14 +168,15 @@ public class AccountViewModel extends ViewModel implements
     @Override
     public void tearDown() {
         singleInstance = null;
-        if (disposable != null) {
-            disposable.dispose();
-        }
+        compositeDisposable.dispose();
     }
-
 
     public interface OnTransactionExecutedListener {
         void sendNotification(@NonNull final String title,
                               @NonNull final String message);
+    }
+
+    public interface OnTransactionDeletedListener {
+        void transactionDeleted();
     }
 }

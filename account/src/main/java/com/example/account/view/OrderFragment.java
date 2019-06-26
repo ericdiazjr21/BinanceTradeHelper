@@ -15,28 +15,23 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
-import android.widget.Toast;
 
 import com.example.account.R;
 import com.example.account.model.Order;
-import com.example.account.utils.TransactionMap;
 import com.example.account.view.recyclerview.TransactionMapAdapter;
 import com.example.account.viewmodel.AccountViewModel;
 import com.example.baseresources.callbacks.OnFragmentInteractionListener;
 import com.example.baseresources.constants.AppConstants;
-import com.example.baseresources.model.interfaces.TradeHelperTransaction;
 
 import java.text.DecimalFormat;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Completable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
-import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 
-public final class OrderFragment extends Fragment {
+public final class OrderFragment extends Fragment implements AccountViewModel.OnTransactionDeletedListener {
 
     private static final String TAG = "OrderFragment";
     private CompositeDisposable compositeDisposable = new CompositeDisposable();
@@ -71,6 +66,7 @@ public final class OrderFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_order, container, false);
         accountViewModel = AccountViewModel.getSingleInstance(getContext());
+        accountViewModel.setTransactionDeletedListener(this);
         findViews(view);
         initQuantityEditTextOnLongPressListener();
         initSpinner(view);
@@ -83,7 +79,7 @@ public final class OrderFragment extends Fragment {
 
     private void initQuantityEditTextOnLongPressListener() {
         executePriceEditText.setOnFocusChangeListener((v, hasFocus) -> {
-            if(!hasFocus){
+            if (!hasFocus) {
                 calculateAssetQuantity();
                 quantityEditText.setText(assetQuantity);
             }
@@ -97,7 +93,8 @@ public final class OrderFragment extends Fragment {
         recyclerView.setAdapter(adapter);
         compositeDisposable.add(accountViewModel.getAllTransactions()
           .observeOn(AndroidSchedulers.mainThread())
-          .subscribe(tradeHelperTransactions -> adapter.setData(tradeHelperTransactions)));
+          .subscribe(tradeHelperTransactions -> adapter.setData(tradeHelperTransactions),
+            throwable -> Log.d(TAG, "accept: " + throwable.getMessage())));
     }
 
     private void initSpinner(View view) {
@@ -156,22 +153,17 @@ public final class OrderFragment extends Fragment {
     }
 
     private void initOrderButtonListener(View view) {
-        view.<Button>findViewById(R.id.submit_order_button).setOnClickListener(v -> {
-              accountViewModel
-                .beginTransaction()
-                .placeOrder(new Order(symbolEditText.getText().toString().toUpperCase(),
-                  strikePriceEditText.getText().toString(),
-                  executePriceEditText.getText().toString(),
-                  quantityEditText.getText().toString(), orderType));
-              compositeDisposable.add(accountViewModel.getAllTransactions()
+        view.<Button>findViewById(R.id.submit_order_button).setOnClickListener(v ->
+          compositeDisposable.add(accountViewModel
+            .beginTransaction()
+            .placeOrder(new Order(symbolEditText.getText().toString().toUpperCase(),
+              strikePriceEditText.getText().toString(),
+              executePriceEditText.getText().toString(),
+              quantityEditText.getText().toString(), orderType))
+            .subscribe(() -> compositeDisposable.add(accountViewModel.getAllTransactions()
               .observeOn(AndroidSchedulers.mainThread())
-              .subscribe(tradeHelperTransactions -> {
-                  adapter.setData(tradeHelperTransactions);
-                  Toast.makeText(view.getContext(), "Order Submitted", Toast.LENGTH_SHORT).show();
-              }));
-          }
-
-        );
+              .subscribe(tradeHelperTransactions -> adapter.setData(tradeHelperTransactions),
+                throwable -> Log.d(TAG, "accept: " + throwable.getMessage()))))));
     }
 
     private void findViews(View view) {
@@ -185,5 +177,12 @@ public final class OrderFragment extends Fragment {
     public void onDestroy() {
         accountViewModel.getTearDownManager().tearDown();
         super.onDestroy();
+    }
+
+    @Override
+    public void transactionDeleted() {
+        compositeDisposable.add(accountViewModel.getAllTransactions()
+          .observeOn(AndroidSchedulers.mainThread())
+          .subscribe(tradeHelperTransactions -> adapter.setData(tradeHelperTransactions)));
     }
 }

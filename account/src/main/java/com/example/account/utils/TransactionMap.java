@@ -15,21 +15,21 @@ public final class TransactionMap {
     private TransactionMap() {
     }
 
-    public static void addTransaction(@NonNull final String symbol,
+    public static void addTransaction(@NonNull final String transactionKey,
                                       @NonNull final Transaction transaction) {
-        TRANSACTION_HASH_MAP.put(symbol, transaction);
+        TRANSACTION_HASH_MAP.put(transactionKey, transaction);
     }
 
-    public static boolean containsOrder(@NonNull final String symbol) {
-        return TRANSACTION_HASH_MAP.containsKey(symbol);
+    public static boolean containsOrder(@NonNull final String transactionKey) {
+        return TRANSACTION_HASH_MAP.containsKey(transactionKey);
     }
 
-    public static Transaction getTransaction(@NonNull final String symbol) {
-        return TRANSACTION_HASH_MAP.get(symbol);
+    public static Transaction getTransaction(@NonNull final String transactionKey) {
+        return TRANSACTION_HASH_MAP.get(transactionKey);
     }
 
-    public static Transaction removeTransaction(@NonNull final String symbol) {
-        return  TRANSACTION_HASH_MAP.remove(symbol);
+    public static Transaction removeTransaction(@NonNull final String transactionKey) {
+        return  TRANSACTION_HASH_MAP.remove(transactionKey);
     }
 
     public static int getSize() {

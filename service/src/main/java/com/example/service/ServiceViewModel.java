@@ -1,5 +1,6 @@
 package com.example.service;
 
+import android.content.Context;
 import android.util.Log;
 
 import com.example.account.utils.TransactionMap;
@@ -17,19 +18,23 @@ public final class ServiceViewModel {
     private ServiceRepository repository;
     private String requestUrl;
 
-    private ServiceViewModel() {
-        repository = new ServiceRepository();
+    private ServiceViewModel(Context context) {
+        repository = new ServiceRepository(context);
     }
 
-    public static ServiceViewModel getSingleInstance() {
+    public static ServiceViewModel getSingleInstance(Context context) {
         if (singleInstance == null) {
-            singleInstance = new ServiceViewModel();
+            singleInstance = new ServiceViewModel(context);
         }
         return singleInstance;
     }
 
     public void setRequestUrl(@NonNull final String requestUrl) {
         this.requestUrl = requestUrl;
+    }
+
+    public void loadAllTransactions() {
+        repository.loadAllTransactions();
     }
 
     public Observable<String> getBinanceStream() {
