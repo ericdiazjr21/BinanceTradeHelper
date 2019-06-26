@@ -19,9 +19,11 @@ public final class Transaction implements TradeHelperTransaction {
     private String executePrice;
     private String quantity;
     private String orderType;
+    private int id;
 
 
-    public Transaction() {
+    public Transaction(int id) {
+        this.id = id;
     }
 
     public void placeBuyOrder(@NonNull final String symbol,
@@ -45,6 +47,7 @@ public final class Transaction implements TradeHelperTransaction {
         this.executePrice = purchasePrice;
         this.orderType = AppConstants.SELL;
     }
+
     public String getSymbol() {
         return symbol;
     }
@@ -63,6 +66,10 @@ public final class Transaction implements TradeHelperTransaction {
 
     public String getOrderType() {
         return orderType;
+    }
+
+    public int getTransactionId() {
+        return id;
     }
 
     @Override

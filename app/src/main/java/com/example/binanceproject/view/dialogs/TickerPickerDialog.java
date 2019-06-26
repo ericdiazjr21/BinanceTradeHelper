@@ -21,7 +21,7 @@ public class TickerPickerDialog {
     public TickerPickerDialog(Context context) {
         this.context = context;
         this.viewModel = BinanceStreamViewModel.getSingleInstance();
-        this.serviceViewModel = ServiceViewModel.getSingleInstance();
+        this.serviceViewModel = ServiceViewModel.getSingleInstance(context);
     }
 
     public void inflateTickerPickerDialog() {

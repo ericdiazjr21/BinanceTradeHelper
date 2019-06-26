@@ -14,7 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import io.reactivex.Completable;
-import io.reactivex.Single;
+import io.reactivex.Observable;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.schedulers.Schedulers;
@@ -27,7 +27,7 @@ public class AccountDatabase extends SQLiteOpenHelper implements TradeHelperData
     private static final int SCHEMA = 1;
     private static AccountDatabase accountDatabaseSingleInstance;
     private CompositeDisposable compositeDisposable = new CompositeDisposable();
-    private static final Map<String, String> transactionModelJsonMap = new HashMap<>();
+    private SQLiteDatabase db;
 
     private AccountDatabase(final Context context) {
         super(context, DATABASE_NAME, null, SCHEMA);
@@ -45,7 +45,7 @@ public class AccountDatabase extends SQLiteOpenHelper implements TradeHelperData
         compositeDisposable.add(Completable.fromAction(() ->
           db.execSQL(
             "CREATE TABLE " + TABLE_NAME +
-              " (_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+              " (_id INTEGER PRIMARY KEY, " +
               "transaction_key TEXT, transaction_value TEXT);"
           )).subscribeOn(Schedulers.io())
           .subscribe(() -> Log.d(TAG, "Database onCreate: Database created!"),
@@ -54,69 +54,53 @@ public class AccountDatabase extends SQLiteOpenHelper implements TradeHelperData
 
     @Override
     public void onOpen(SQLiteDatabase db) {
-        super.onOpen(db);
-    }
-
-    private void loadAllTransactions() {
-        compositeDisposable.add(Completable.fromAction(() -> {
-            transactionModelJsonMap.clear();
-            Cursor cursor = getReadableDatabase().rawQuery(
-              "SELECT * FROM " + TABLE_NAME + ";", null);
-            if (cursor != null) {
-                if (cursor.moveToFirst()) {
-                    do {
-                        transactionModelJsonMap.put(
-                          cursor.getString(cursor.getColumnIndex("transaction_key")),
-                          cursor.getString(cursor.getColumnIndex("transaction_value")));
-                    } while (cursor.moveToNext());
-                }
-            }
-        })
-          .subscribeOn(Schedulers.io())
-          .subscribe(() -> Log.d(TAG, "run: Transactions Loaded"),
-            throwable -> Log.d(TAG, "accept: " + throwable.getMessage())));
+        this.db = db;
+        super.onOpen(this.db);
     }
 
     @Override
-    public void addTransaction(@NonNull final TradeHelperTransaction transaction) {
-        compositeDisposable.add(Completable.fromAction(() -> {
+    public Observable<Map<String, String>> getAllTransactions() {
+        Map<String, String> transactionModelJsonMap = new HashMap<>();
+        return Observable.just(transactionModelJsonMap)
+          .map(jsonTransactionMap -> {
+              Cursor cursor = getReadableDatabase().rawQuery(
+                "SELECT * FROM " + TABLE_NAME + ";", null);
+              if (cursor != null) {
+                  if (cursor.moveToFirst()) {
+                      do {
+                          Log.d(TAG, "getAllTransactions: " + cursor.getString(cursor.getColumnIndex("_id"))
+                            + cursor.getString(cursor.getColumnIndex("transaction_key")));
+                          transactionModelJsonMap.put(
+                            cursor.getString(cursor.getColumnIndex("transaction_key")),
+                            cursor.getString(cursor.getColumnIndex("transaction_value")));
+                      } while (cursor.moveToNext());
+                  }
+              }
+              return transactionModelJsonMap;
+          });
+    }
+
+    @Override
+    public Completable addTransaction(@NonNull final TradeHelperTransaction transaction) {
+        return Completable.fromAction(() -> {
             Cursor cursor = getReadableDatabase().rawQuery(
-              "SELECT * FROM " + TABLE_NAME + " WHERE transaction_key = '" + transaction.getSymbol() + transaction.getStrikePrice() +
-                "' AND transaction_value = '" + TransactionSerializer.serializeTransaction(transaction) + "' AND _id = '" + (transactionModelJsonMap.size() + 1) +
+              "SELECT * FROM " + TABLE_NAME + " WHERE transaction_key = '" + transaction.getTransactionId() +
+                "' AND transaction_value = '" + TransactionSerializer.serializeTransaction(transaction) +
                 "';", null);
             if (cursor.getCount() == 0) {
                 getWritableDatabase().execSQL("INSERT INTO " + TABLE_NAME +
                   "(transaction_key,transaction_value) VALUES('" +
-                  transaction.getSymbol() + transaction.getStrikePrice() + "', '" +
+                  transaction.getTransactionId() + "', '" +
                   TransactionSerializer.serializeTransaction(transaction) + "');");
             }
             cursor.close();
-        }).subscribeOn(Schedulers.io())
-          .subscribe(() -> Log.d(TAG, "run: Transaction stored in database"),
-            throwable -> Log.d(TAG, "accept: " + throwable.getMessage())));
+        }).subscribeOn(Schedulers.io());
     }
 
     @Override
-    public void deleteTransaction(@NonNull final TradeHelperTransaction transaction) {
-        compositeDisposable.add(Completable.fromAction(() -> {
-            Cursor cursor = getReadableDatabase().rawQuery(
-              "SELECT * FROM " + TABLE_NAME +
-                " WHERE transaction_key = '" + transaction.getSymbol() + transaction.getStrikePrice() +
-                "' AND transaction_value = '" + TransactionSerializer.serializeTransaction(transaction) +
-                "';", null);
-            if (cursor != null) {
-                getWritableDatabase().execSQL("DELETE FROM " + TABLE_NAME +
-                  " WHERE transaction_key = '" + transaction.getSymbol() + transaction.getStrikePrice() +
-                  "';", null);
-            }
-        }).subscribe(() -> Log.d(TAG, "run: deleted transaction"),
-          throwable -> Log.d(TAG, "accept: " + throwable.getMessage())));
-    }
-
-    @Override
-    public Single<Map<String, String>> getAllTransactions() {
-        loadAllTransactions();
-        return Single.just(transactionModelJsonMap);
+    public Completable deleteTransaction(@NonNull final TradeHelperTransaction transaction) {
+        return Completable.fromAction(() ->
+          db.delete(TABLE_NAME, "transaction_key=" + transaction.getTransactionId(), null));
     }
 
     @Override
@@ -124,5 +108,9 @@ public class AccountDatabase extends SQLiteOpenHelper implements TradeHelperData
 
     }
 
-
+    @Override
+    public synchronized void close() {
+        super.close();
+        compositeDisposable.dispose();
+    }
 }

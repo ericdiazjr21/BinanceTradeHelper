@@ -1,16 +1,30 @@
 package com.example.service;
 
-import io.reactivex.Observable;
+import android.content.Context;
 
-public class ServiceRepository {
+import com.example.baseresources.database.AccountDatabase;
+import com.example.baseresources.model.interfaces.TradeHelperDatabase;
+
+import io.reactivex.Observable;
+import io.reactivex.annotations.NonNull;
+
+class ServiceRepository {
 
     private BinanceServiceWebSocket webSocket;
+    private TradeHelperDatabase database;
 
-    public ServiceRepository() {
+    ServiceRepository(@NonNull final Context context) {
+        database = AccountDatabase.getSingleInstance(context);
         webSocket = new BinanceServiceWebSocket();
     }
 
-    public Observable<String> getBinanceWebSocketStream(String url){
+    Observable<String> getBinanceWebSocketStream(String url) {
         return webSocket.getBinanceStreamSubscription(url);
     }
+
+    void loadAllTransactions() {
+        database.getAllTransactions();
+    }
+
+
 }

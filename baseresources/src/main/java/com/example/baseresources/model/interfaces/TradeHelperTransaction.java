@@ -12,4 +12,6 @@ public interface TradeHelperTransaction {
     String getStrikePrice();
 
     String getOrderType();
+
+    int getTransactionId();
 }

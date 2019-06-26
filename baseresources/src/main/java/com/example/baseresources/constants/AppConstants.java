@@ -14,6 +14,10 @@ public class AppConstants {
     public static final String REGULAR_CLOSE = "regular_close";
 
     private static final String BTCUSDT = "btcusdt@ticker/";
+    private static final String IOSTUSDT = "iostusdt@ticker/";
+    private static final String VETUSDT = "vetusdt@ticker/";
+    private static final String ZILUSDT = "zilusdt@ticker/";
+    private static final String QTUMUSDT = "qtumusdt@ticker/";
     private static final String MATICUSDT = "maticusdt@ticker/";
     private static final String LINKUSDT = "linkusdt@ticker/";
     private static final String ONTUSDT = "ontusdt@ticker/";
@@ -29,7 +33,8 @@ public class AppConstants {
     private static final String CMTBTC = "cmtbtc@ticker/";
     private static final String RCNBTC = "rcnbtc@ticker/";
 
-    public static final String[] ALL_TICKERS = {BTCUSDT, MATICUSDT, LINKUSDT, ONTUSDT, CELRUSDT, TFUELUSDT, BNBBTC, RLCBTC, ETHBTC, KEYBTC, POEBTC, QKCBTC, LENDBTC, CMTBTC, RCNBTC};
+    public static final String[] ALL_TICKERS = {BTCUSDT, IOSTUSDT, VETUSDT, ZILUSDT, QTUMUSDT, MATICUSDT,
+      LINKUSDT, ONTUSDT, CELRUSDT, TFUELUSDT, BNBBTC, RLCBTC, ETHBTC, KEYBTC, POEBTC, QKCBTC, LENDBTC, CMTBTC, RCNBTC};
 
 
     //App function constants
