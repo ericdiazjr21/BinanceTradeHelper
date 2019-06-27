@@ -23,6 +23,7 @@ import net.sealake.binance.api.client.BinanceApiAsyncRestClient;
 import net.sealake.binance.api.client.BinanceApiCallback;
 import net.sealake.binance.api.client.domain.account.Account;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -86,6 +87,19 @@ public class AccountViewModel extends ViewModel implements
 
     public void setTransactionExecutedListener(OnTransactionExecutedListener transactionExecutedListener) {
         AccountViewModel.transactionExecutedListener = transactionExecutedListener;
+    }
+
+    public String getUsdtValue(String assetValue, String executePrice) {
+        return String.valueOf((Double.valueOf(assetValue) * Double.valueOf(executePrice)));
+    }
+
+    public String getAssetRatio(String usdtValue, String executePrice) {
+        return new DecimalFormat("#.##")
+          .format(Double.valueOf(usdtValue) / Double.parseDouble(executePrice));
+    }
+
+    public String getAssetValueFormatted(String value) {
+        return new DecimalFormat("#").format(Double.valueOf(value) - 1);
     }
 
     public Completable placeOrder(@NonNull final Order order) {

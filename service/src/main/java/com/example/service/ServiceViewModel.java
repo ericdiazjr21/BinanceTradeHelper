@@ -51,7 +51,7 @@ public final class ServiceViewModel {
               if (TransactionMap.containsOrder(symbolData)) {
                   TransactionMap.getTransaction(symbolData).execute();
                   TransactionMap.removeTransaction(symbolData);
-                  return "Order Processed";
+                  return "Order Processed" + symbolData;
               }
               return symbolData;
           });

@@ -15,6 +15,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.TextView;
 
 import com.example.account.R;
 import com.example.account.model.Order;
@@ -23,7 +24,8 @@ import com.example.account.viewmodel.AccountViewModel;
 import com.example.baseresources.callbacks.OnFragmentInteractionListener;
 import com.example.baseresources.constants.AppConstants;
 
-import java.text.DecimalFormat;
+import net.sealake.binance.api.client.domain.account.AssetBalance;
+
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Completable;
@@ -42,9 +44,10 @@ public final class OrderFragment extends Fragment implements AccountViewModel.On
     private EditText strikePriceEditText;
     private EditText executePriceEditText;
     private EditText quantityEditText;
+    private TextView assetBalanceTextView;
     private String orderType;
     private String assetQuantity;
-    private double usdtBalance;
+    private String assetValue;
 
     public OrderFragment() {
     }
@@ -68,7 +71,7 @@ public final class OrderFragment extends Fragment implements AccountViewModel.On
         accountViewModel = AccountViewModel.getSingleInstance(getContext());
         accountViewModel.setTransactionDeletedListener(this);
         findViews(view);
-        initQuantityEditTextOnLongPressListener();
+        initQuantityEditTextFocusChangeListener();
         initSpinner(view);
         initOrderButtonListener(view);
         initReturnButtonListener(view);
@@ -77,11 +80,15 @@ public final class OrderFragment extends Fragment implements AccountViewModel.On
         return view;
     }
 
-    private void initQuantityEditTextOnLongPressListener() {
+    private void initQuantityEditTextFocusChangeListener() {
         executePriceEditText.setOnFocusChangeListener((v, hasFocus) -> {
             if (!hasFocus) {
-                calculateAssetQuantity();
-                quantityEditText.setText(assetQuantity);
+                if (orderType.equals(AppConstants.BUY)) {
+                    assetQuantity = accountViewModel.getAssetRatio(assetValue, executePriceEditText.getText().toString());
+                    quantityEditText.setText(assetQuantity);
+                } else {
+                    assetBalanceTextView.setText(String.format("USDT: %s", accountViewModel
+                      .getUsdtValue(assetValue, executePriceEditText.getText().toString())));                }
             }
         });
     }
@@ -122,16 +129,27 @@ public final class OrderFragment extends Fragment implements AccountViewModel.On
 
     private void initAutoGenerateButtonListener(View view) {
         view.<Button>findViewById(R.id.auto_generate_button).setOnClickListener(v -> {
-            if (!symbolEditText.getText().toString().equals("")) {
-                compositeDisposable.add(accountViewModel.getTickerPrice(symbolEditText.getText().toString().toUpperCase())
+            String symbol = symbolEditText.getText().toString();
+            if (!symbol.equals("")) {
+                compositeDisposable.add(accountViewModel.getTickerPrice(symbol.toUpperCase())
                   .observeOn(AndroidSchedulers.mainThread())
                   .subscribe(currentPrice -> {
                       executePriceEditText.setText(currentPrice);
                       strikePriceEditText.setText(currentPrice);
                       compositeDisposable.add(Completable.fromAction(() ->
                         accountViewModel.getAccountBalance(response -> {
-                            usdtBalance = Double.parseDouble(response.getAssetBalance("USDT").getFree());
-                            calculateAssetQuantity();
+                            if (orderType.equals(AppConstants.BUY)) {
+                                assetValue = response.getAssetBalance("USDT").getFree();
+                                assetBalanceTextView.setText(String.format("USDT: %s", assetValue));
+                                assetQuantity = accountViewModel.getAssetRatio(assetValue,
+                                  executePriceEditText.getText().toString());
+                            } else {
+                                assetValue = accountViewModel.getAssetValueFormatted(
+                                  response.getAssetBalance(symbol.replace("usdt", "").toUpperCase()).getFree());
+                                assetBalanceTextView.setText(String.format("USDT: %s", accountViewModel
+                                  .getUsdtValue(assetValue, executePriceEditText.getText().toString())));
+                                assetQuantity = assetValue;
+                            }
                         }))
                         .delay(1000, TimeUnit.MILLISECONDS)
                         .subscribeOn(Schedulers.io())
@@ -143,10 +161,6 @@ public final class OrderFragment extends Fragment implements AccountViewModel.On
         });
     }
 
-    private void calculateAssetQuantity() {
-        double assetRatio = usdtBalance / Double.parseDouble(executePriceEditText.getText().toString());
-        assetQuantity = new DecimalFormat("#.##").format(assetRatio);
-    }
 
     private void initReturnButtonListener(View view) {
         view.<Button>findViewById(R.id.return_button).setOnClickListener(v -> interactionListener.closeFragment());
@@ -171,6 +185,7 @@ public final class OrderFragment extends Fragment implements AccountViewModel.On
         strikePriceEditText = view.findViewById(R.id.strike_price_edit_text);
         executePriceEditText = view.findViewById(R.id.purchase_price_edit_text);
         quantityEditText = view.findViewById(R.id.quantity_edit_text);
+        assetBalanceTextView = view.findViewById(R.id.asset_balance_text_view);
     }
 
     @Override
