@@ -8,7 +8,6 @@ import android.util.Log;
 import com.example.baseresources.utils.NotificationGenerator;
 import com.example.service.ServiceViewModel;
 
-import io.reactivex.Completable;
 import io.reactivex.Maybe;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.schedulers.Schedulers;
@@ -31,8 +30,7 @@ public class TradeHelperService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         startForeground(1, new NotificationGenerator(this).getNotificationForeground());
-
-        compositeDisposable.add(Completable.fromAction(() -> serviceViewModel.loadAllTransactions()).subscribe());
+        compositeDisposable.add(serviceViewModel.getAllTransactions().subscribe());
         compositeDisposable.add(serviceViewModel.getBinanceStream()
           .doOnNext(symbolName -> {
               if (symbolName.contains("Order Processed"))
