@@ -2,10 +2,10 @@ version: 2.0
 jobs:
   build:
     docker:
-      - image: alpine:3.7
+      - image: circleci/android:api-28-alpha
     steps:
       - run:
-          name: The First Step
+          name: Test Run!
           command: |
             echo 'Hello World!'
             echo 'This is the delivery pipeline'
