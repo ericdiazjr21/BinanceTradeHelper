@@ -161,7 +161,6 @@ public final class OrderFragment extends Fragment implements AccountViewModel.On
         });
     }
 
-
     private void initReturnButtonListener(View view) {
         view.<Button>findViewById(R.id.return_button).setOnClickListener(v -> interactionListener.closeFragment());
     }

@@ -5,6 +5,8 @@ import android.content.Context;
 import com.example.baseresources.database.AccountDatabase;
 import com.example.baseresources.model.interfaces.TradeHelperDatabase;
 
+import java.util.Map;
+
 import io.reactivex.Observable;
 import io.reactivex.annotations.NonNull;
 
@@ -22,8 +24,8 @@ class ServiceRepository {
         return webSocket.getBinanceStreamSubscription(url);
     }
 
-    void loadAllTransactions() {
-        database.getAllTransactions();
+    Observable<Map<String, String>> getAllTransactions() {
+        return database.getAllTransactions();
     }
 
 

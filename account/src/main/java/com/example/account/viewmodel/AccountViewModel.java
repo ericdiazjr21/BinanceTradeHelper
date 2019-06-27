@@ -90,7 +90,8 @@ public class AccountViewModel extends ViewModel implements
     }
 
     public String getUsdtValue(String assetValue, String executePrice) {
-        return String.valueOf((Double.valueOf(assetValue) * Double.valueOf(executePrice)));
+        return String.valueOf(new DecimalFormat("#.##")
+          .format(Double.valueOf(assetValue) * Double.valueOf(executePrice)));
     }
 
     public String getAssetRatio(String usdtValue, String executePrice) {
@@ -149,6 +150,7 @@ public class AccountViewModel extends ViewModel implements
     }
 
     private void checkTransactionMap(Observable<String> symbolData) {
+        Log.d(TAG, "checkTransactionMap: Size: " + TransactionMap.getSize());
         compositeDisposable.add(symbolData
           .map(TickerStreamConverter::tickerStreamDeserializer)
           .doOnNext(tickerStream -> {
@@ -159,11 +161,12 @@ public class AccountViewModel extends ViewModel implements
               if (TransactionMap.containsOrder(transactionId)) {
                   TransactionMap.getTransaction(transactionId).execute();
                   Transaction transaction = TransactionMap.removeTransaction(transactionId);
+                  deleteTransaction(transaction);
                   transactionExecutedListener.sendNotification("New Order Posted!", transaction.getSymbol());
               }
           }).subscribeOn(Schedulers.io())
           .observeOn(AndroidSchedulers.mainThread())
-          .subscribe(throwable -> Log.d(TAG, "accept: " + throwable.toString())));
+          .subscribe(symbol -> Log.d(TAG, "accept: " + symbol.getData().getLastPrice())));
     }
 
     public void setTransactionDeletedListener(OnTransactionDeletedListener transactionDeletedListener) {

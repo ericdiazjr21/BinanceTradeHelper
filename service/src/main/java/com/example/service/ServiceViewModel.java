@@ -7,6 +7,9 @@ import com.example.account.utils.TransactionMap;
 import com.example.baseresources.model.Data;
 import com.example.baseresources.utils.TickerStreamConverter;
 
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
 import io.reactivex.Observable;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.schedulers.Schedulers;
@@ -33,8 +36,8 @@ public final class ServiceViewModel {
         this.requestUrl = requestUrl;
     }
 
-    public void loadAllTransactions() {
-        repository.loadAllTransactions();
+    public Observable<Map<String, String>> getAllTransactions() {
+        return repository.getAllTransactions();
     }
 
     public Observable<String> getBinanceStream() {
@@ -50,6 +53,9 @@ public final class ServiceViewModel {
               Log.d(TAG, "getBinanceStream: " + TransactionMap.getSize());
               if (TransactionMap.containsOrder(symbolData)) {
                   TransactionMap.getTransaction(symbolData).execute();
+                  Observable.just(TransactionMap.removeTransaction(symbolData))
+                    .delay(2000, TimeUnit.MILLISECONDS)
+                    .subscribe();
                   TransactionMap.removeTransaction(symbolData);
                   return "Order Processed" + symbolData;
               }
