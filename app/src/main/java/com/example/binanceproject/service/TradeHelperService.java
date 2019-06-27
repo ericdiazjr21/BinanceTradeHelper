@@ -11,7 +11,6 @@ import com.example.service.ServiceViewModel;
 import io.reactivex.Completable;
 import io.reactivex.Maybe;
 import io.reactivex.disposables.CompositeDisposable;
-import io.reactivex.functions.Action;
 import io.reactivex.schedulers.Schedulers;
 
 public class TradeHelperService extends Service {
@@ -36,9 +35,9 @@ public class TradeHelperService extends Service {
         compositeDisposable.add(Completable.fromAction(() -> serviceViewModel.loadAllTransactions()).subscribe());
         compositeDisposable.add(serviceViewModel.getBinanceStream()
           .doOnNext(symbolName -> {
-              if (symbolName.equals("Order Processed"))
+              if (symbolName.contains("Order Processed"))
                   new NotificationGenerator(TradeHelperService.this)
-                    .sendNotification(symbolName, "Order Processed!");
+                    .sendNotification("Order Processed!", symbolName);
           }).subscribe(symbolStream -> Log.d(TAG, "accept: " + symbolStream),
             throwable -> {
                 Log.d(TAG, "accept: " + throwable.getMessage());
