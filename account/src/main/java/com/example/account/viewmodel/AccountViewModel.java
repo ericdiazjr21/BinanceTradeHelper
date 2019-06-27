@@ -90,7 +90,8 @@ public class AccountViewModel extends ViewModel implements
     }
 
     public String getUsdtValue(String assetValue, String executePrice) {
-        return String.valueOf((Double.valueOf(assetValue) * Double.valueOf(executePrice)));
+        return String.valueOf(new DecimalFormat("#.##")
+          .format(Double.valueOf(assetValue) * Double.valueOf(executePrice)));
     }
 
     public String getAssetRatio(String usdtValue, String executePrice) {
